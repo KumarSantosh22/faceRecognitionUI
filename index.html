@@ -1,16 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Recognition</title>
-    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="./bootstrap.min.css">
+    <style>
+        img {
+            height: 200px;
+            width: 200px;
+        }
+    </style>
 </head>
-<body>
-    
 
-    <script src="./node_modules/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="index.js"></script>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">FaceRecognition</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        </li> -->
+                        <!-- <li class="nav-item">
+                            <a class="nav-link" href="#">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Contact</a>
+                        </li> -->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="row my-5">
+            <div class="col-sm-12 col-md-6 mb-3">
+                <div class="card p-3">
+                    <label for="inputFile1" class="form-label">Image 1:</label>
+                    <input name="inputFile1" id="inputFile1" type="file" class="file-upload"
+                        onchange="fileChange1(event)">
+                    <img class="img-fluid p-3" id="output1" src="" />
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-6 mb-3">
+                <div class="card p-3">
+                    <label for="inputFile2" class="form-label">Image 2:</label>
+                    <input name="inputFile2" id="inputFile2" type="file" class="file-upload"
+                        onchange="fileChange2(event)">
+                    <img class="img-fluid p-3" id="output2" src="" />
+                </div>
+
+            </div>
+            <div class="p-3" id="match-result">
+            </div>
+            <div class="col-12 text-center p-3">
+                <button type="button" class="btn btn-outline-primary" onclick="compare()">Match</button>
+            </div>
+        </div>
+    </main>
+    <script src="./bootstrap.min.js"></script>
+    <script>
+        model = { fileData1: '', fileName1: '', fileType1: '', fileData1: '', fileName2: '', fileType2: '' }
+
+        async function fileChange1(event) {
+            console.log(event);
+            const file = event.target.files[0];
+            if (file) {
+                console.log(file);
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                // on successfully load
+                reader.onload = () => {
+                    model.fileData1 = reader.result;
+                    // console.log(model.fileData1)
+                    document.getElementById('output1').src = model.fileData1;
+                }
+                // on error
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+                // model.fileData1 = this.getBase64(file);
+                model.fileName1 = file.name;
+                let fType = model.fileName1.split('.').map(x => x.trim());
+                model.fileType1 = fType[fType.length - 1];
+            }
+        }
+
+        async function fileChange2(event) {
+            console.log(event);
+            const file = event.target.files[0];
+            if (file) {
+                console.log(file);
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                // on successfully load
+                reader.onload = () => {
+                    model.fileData2 = reader.result;
+                    // console.log(model.fileData2)
+                    document.getElementById('output2').src = model.fileData2;
+                }
+                // on error
+                reader.onerror = function (error) {
+                    console.log('Error: ', error);
+                };
+                model.fileName2 = file.name;
+                let fType = model.fileName2.split('.').map(x => x.trim());
+                model.fileType2 = fType[fType.length - 1];
+            }
+        }
+
+        function compare() {
+            console.log('comparing....');
+            apiUrl = 'http://localhost:5000/api/v1/facematch';
+            const result = document.getElementById('match-result');
+            console.log(result);
+            result.innerText = 'Please wait patiently while we calculate result...';
+
+            // calling api
+            let options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8;'
+                },
+                body: JSON.stringify(model)
+            }
+            let fetchRes = fetch(apiUrl, options);
+            fetchRes.then(res =>
+                res.json()).then(d => {
+                    console.log(d)
+                    // print response 
+                    let txt = "";
+                    for (let x in d) {
+                        txt += x + ":";
+                        txt += d[x] + ";  ";
+                    };
+                    result.innerText = txt;
+                })
+        }
+    </script>
 </body>
+
 </html>
